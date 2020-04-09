@@ -3,6 +3,7 @@ This tool generates expressions.
 
 Usage (indented to prevent it running for this example):
 	//go:generate go run github.com/spencer-p/craftinginterpreters/cmd/genexpr
+	/// import fmt
 	/// Expr1: x int, y string
 	/// Expr2: a bool, b []byte
 
@@ -45,9 +46,10 @@ func main() {
 	}
 	defer f.Close()
 
-	types := make([]meta.Typ, 0)
-
 	lines := bufio.NewScanner(f)
+	info := &meta.Info{
+		Package: packagename,
+	}
 	for lines.Scan() {
 		text := lines.Text()
 		if !strings.HasPrefix(text, PREFIX) {
@@ -55,12 +57,10 @@ func main() {
 		}
 
 		text = text[len(PREFIX):]
-		parsed, err := meta.ParseTypes(text)
-		if err != nil {
+		if err := meta.ParseTypes(info, text); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to parse\n")
 			return
 		}
-		types = append(types, parsed...)
 	}
 
 	out, err := os.Create(filename[:len(filename)-len(".go")] + "_genexpr.go")
@@ -70,5 +70,5 @@ func main() {
 	}
 	defer f.Close()
 
-	meta.GenExpr(out, types, packagename)
+	meta.GenExpr(out, info)
 }

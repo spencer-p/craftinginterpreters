@@ -15,6 +15,8 @@ const (
 	exprInterface = "type Expr interface {\n\tVisit(Visitor) interface{}\n}\n\n"
 
 	visitorMethod = "func (e *%s) Visit(v Visitor) interface{} {\n\treturn v.Visit%s(e)\n}\n\n"
+
+	importPrefix = "import "
 )
 
 var (
@@ -31,11 +33,18 @@ type Typ struct {
 	fields []Field
 }
 
-func GenExpr(out io.Writer, types []Typ, packagename string) {
-	writeHeader(out, packagename)
+type Info struct {
+	Package string
+	Types   []Typ
+	Imports []string
+}
+
+func GenExpr(out io.Writer, i *Info) {
+	writeHeader(out, i.Package)
+	writeImports(out, i.Imports)
 	writeExprInterface(out)
-	writeVisitorInterface(out, types)
-	for _, typ := range types {
+	writeVisitorInterface(out, i.Types)
+	for _, typ := range i.Types {
 		writeType(out, typ)
 		writeVisitorMethod(out, typ)
 	}
@@ -45,6 +54,14 @@ func writeHeader(out io.Writer, packagename string) {
 	out.Write([]byte(`package `))
 	out.Write([]byte(packagename))
 	out.Write([]byte{'\n', '\n'})
+}
+
+func writeImports(out io.Writer, imports []string) {
+	fmt.Fprintf(out, "import (\n")
+	for i := range imports {
+		fmt.Fprintf(out, "\t\"%s\"\n", imports[i])
+	}
+	fmt.Fprintf(out, ")\n\n")
 }
 
 func writeExprInterface(out io.Writer) {
@@ -71,16 +88,24 @@ func writeVisitorMethod(out io.Writer, typ Typ) {
 	fmt.Fprintf(out, visitorMethod, typ.name, typ.name)
 }
 
-func ParseTypes(in string) ([]Typ, error) {
+func ParseTypes(info *Info, in string) error {
 	// Sorry about this.
 
-	types := make([]Typ, 0)
+	if info.Types == nil {
+		info.Types = make([]Typ, 0)
+	}
+
 	lines := strings.Split(in, "\n")
 	for i := range lines {
+		if strings.HasPrefix(lines[i], importPrefix) {
+			info.Imports = append(info.Imports, strings.Trim(lines[i][len(importPrefix):], " "))
+			continue
+		}
+
 		nameAndFields := strings.SplitN(strings.Trim(lines[i], " \t"), ":", 2)
 
 		if len(nameAndFields) != 2 {
-			return nil, ParseError
+			return ParseError
 		}
 
 		name := strings.Trim(nameAndFields[0], " ")
@@ -94,7 +119,7 @@ func ParseTypes(in string) ([]Typ, error) {
 		for _, field := range strings.Split(fields, ",") {
 			nameAndTyp := strings.SplitN(strings.Trim(field, " "), " ", 2)
 			if len(nameAndTyp) != 2 {
-				return nil, ParseError
+				return ParseError
 			}
 			t.fields = append(t.fields, Field{
 				name: strings.Trim(nameAndTyp[0], " "),
@@ -102,7 +127,7 @@ func ParseTypes(in string) ([]Typ, error) {
 			})
 		}
 
-		types = append(types, t)
+		info.Types = append(info.Types, t)
 	}
-	return types, nil
+	return nil
 }

@@ -1,5 +1,9 @@
 package expr
 
+import (
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
+)
+
 type Expr interface {
 	Visit(Visitor) interface{}
 }
@@ -12,9 +16,9 @@ type Visitor interface {
 }
 
 type Binary struct {
-	Left Expr
+	Left  Expr
 	Right Expr
-	Op tok.Token
+	Op    tok.Token
 }
 
 func (e *Binary) Visit(v Visitor) interface{} {
@@ -38,11 +42,10 @@ func (e *Literal) Visit(v Visitor) interface{} {
 }
 
 type Unary struct {
-	Op tok.Token
+	Op    tok.Token
 	Right Expr
 }
 
 func (e *Unary) Visit(v Visitor) interface{} {
 	return v.VisitUnary(e)
 }
-

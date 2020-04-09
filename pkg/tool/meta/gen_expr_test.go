@@ -8,23 +8,28 @@ import (
 )
 
 func TestGenExpr(t *testing.T) {
-	in := []Typ{{
-		name: "MyExpr",
-		fields: []Field{{
-			name: "x",
-			typ:  "int",
-		}, {
-			name: "a",
-			typ:  "string",
-		}, {
-			name: "m",
-			typ:  "bool",
-		}},
-	}}
-
-	packagename := `dummy`
+	in := Info{
+		Package: "dummy",
+		Imports: []string{"fmt"},
+		Types: []Typ{{
+			name: "MyExpr",
+			fields: []Field{{
+				name: "x",
+				typ:  "int",
+			}, {
+				name: "a",
+				typ:  "string",
+			}, {
+				name: "m",
+				typ:  "bool",
+			}},
+		}}}
 
 	want := `package dummy
+
+import (
+	"fmt"
+)
 
 type Expr interface {
 	Visit(Visitor) interface{}
@@ -47,7 +52,7 @@ func (e *MyExpr) Visit(v Visitor) interface{} {
 `
 
 	var buf bytes.Buffer
-	GenExpr(&buf, in, packagename)
+	GenExpr(&buf, &in)
 
 	if diff := cmp.Diff(buf.Bytes(), []byte(want)); diff != "" {
 		t.Errorf("error in genexpr (-got,+want): %s", diff)
@@ -78,12 +83,13 @@ func TestParseTypes(t *testing.T) {
 		}},
 	}}
 
-	got, err := ParseTypes(in)
+	var got Info
+	err := ParseTypes(&got, in)
 	if err != nil {
 		t.Errorf("unexpected error: %+v", err)
 		return
 	}
-	if diff := cmp.Diff(got, want, cmp.AllowUnexported(Typ{}, Field{})); diff != "" {
+	if diff := cmp.Diff(got.Types, want, cmp.AllowUnexported(Typ{}, Field{})); diff != "" {
 		t.Errorf("(-got,+want): %s", diff)
 	}
 }
