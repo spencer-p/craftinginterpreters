@@ -1,9 +1,11 @@
-package lox
+package scan
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
+	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
 func TestScanner(t *testing.T) {
@@ -41,7 +43,7 @@ func TestScanner(t *testing.T) {
 	}}
 
 	for _, test := range table {
-		tokens := NewScanner(test.in).Tokens()
+		tokens := New(test.in).Tokens()
 		got := make([]TokenType, len(tokens))
 		for i := 0; i < len(tokens); i++ {
 			got[i] = tokens[i].typ

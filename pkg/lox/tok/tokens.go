@@ -1,4 +1,4 @@
-package lox
+package tok
 
 import (
 	"fmt"
@@ -62,12 +62,12 @@ const (
 )
 
 type Token struct {
-	typ    TokenType
-	lexeme string
-	lit    interface{}
-	line   int
+	Typ    TokenType
+	Lexeme string
+	Lit    interface{}
+	Line   int
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("{%s %q %v}", t.typ.String(), t.lexeme, t.lit)
+	return fmt.Sprintf("{%s %q %v}", t.Typ.String(), t.Lexeme, t.Lit)
 }

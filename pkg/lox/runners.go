@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan"
 )
 
 // runFile interprets the code in the given file.
@@ -49,7 +51,7 @@ func fetchFile(path string) ([]byte, error) {
 }
 
 func run(in string) {
-	scanner := NewScanner(in)
+	scanner := scan.New(in)
 	toks := scanner.Tokens()
 	fmt.Printf("%v\n", toks)
 }

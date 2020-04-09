@@ -1,9 +1,12 @@
-package lox
+package scan
 
 import (
 	"strconv"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
+	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
 var (
@@ -54,7 +57,7 @@ type Scanner struct {
 	lookaheadi int
 }
 
-func NewScanner(src string) *Scanner {
+func New(src string) *Scanner {
 	return &Scanner{
 		src:        src,
 		tokens:     make([]Token, 0),
@@ -118,7 +121,7 @@ func (s *Scanner) scanToken() {
 		} else if isAlphaNum(r) {
 			s.eatIdent()
 		} else {
-			complain(s.line, "unexpected rune %q", r)
+			errtrack.Complain(s.line, "unexpected rune %q", r)
 		}
 	}
 
@@ -199,7 +202,7 @@ func (s *Scanner) eatString() {
 
 	// the document ended before the string..
 	if s.atEnd() {
-		complain(s.line, "unterminated string")
+		errtrack.Complain(s.line, "unterminated string")
 		return
 	}
 
@@ -226,7 +229,7 @@ func (s *Scanner) eatNumber() {
 
 	val, err := strconv.ParseFloat(s.src[s.start:s.cur], 64)
 	if err != nil {
-		complain(s.line, "number does not parse: %v", err)
+		errtrack.Complain(s.line, "number does not parse: %v", err)
 		return
 	}
 	s.addToken(NUMBER, val)
