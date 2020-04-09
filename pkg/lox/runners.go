@@ -1,4 +1,4 @@
-package main
+package lox
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 )
 
 // runFile interprets the code in the given file.
-func runFile(path string) error {
+func RunFile(path string) error {
 	bytes, err := fetchFile(path)
 	if err != nil {
 		return err
@@ -20,7 +20,7 @@ func runFile(path string) error {
 }
 
 // runPrompt interprets code interactively.
-func runPrompt() {
+func RunPrompt() {
 	in := bufio.NewScanner(os.Stdin)
 
 	fmt.Print("> ")

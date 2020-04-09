@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+
+	"github.com/spencer-p/craftinginterpreters/pkg/lox"
 )
 
 func main() {
@@ -10,8 +12,8 @@ func main() {
 
 	inputFile := flag.Arg(0)
 	if inputFile == "" {
-		runPrompt()
+		lox.RunPrompt()
 	} else {
-		runFile(inputFile)
+		lox.RunFile(inputFile)
 	}
 }
