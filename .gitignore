@@ -1,3 +1,4 @@
 *.swp
-# the binary exe
+# the binary exes
 craftinginterpreters
+ilox
