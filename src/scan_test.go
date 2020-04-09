@@ -29,6 +29,15 @@ func TestScanner(t *testing.T) {
 		in: `"newlines can be
 		in a string"`,
 		want: []TokenType{STRING, EOF},
+	}, {
+		in:   `123.4`,
+		want: []TokenType{NUMBER, EOF},
+	}, {
+		in:   `123`,
+		want: []TokenType{NUMBER, EOF},
+	}, {
+		in:   `0.123`,
+		want: []TokenType{NUMBER, EOF},
 	}}
 
 	for _, test := range table {

@@ -35,7 +35,7 @@ const (
 	LESS_EQUAL
 
 	// Literals.
-	IDENTIFIER
+	IDENT
 	STRING
 	NUMBER
 
@@ -44,7 +44,7 @@ const (
 	CLASS
 	ELSE
 	FALSE
-	FUN
+	FN
 	FOR
 	IF
 	NIL
