@@ -1,5 +1,7 @@
 package expr
 
 //go:generate go run github.com/spencer-p/craftinginterpreters/cmd/genexpr
-/// Expr1: x int, y string
-/// Expr2: a bool, b []byte
+/// Binary: Left Expr, Right Expr, Op tok.Token
+/// Grouping: Expression Expr
+/// Literal: Value interface{}
+/// Unary: Op tok.Token, Right Expr

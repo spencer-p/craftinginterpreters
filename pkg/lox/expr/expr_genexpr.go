@@ -5,25 +5,44 @@ type Expr interface {
 }
 
 type Visitor interface {
-	VisitExpr1(*Expr1) interface{}
-	VisitExpr2(*Expr2) interface{}
+	VisitBinary(*Binary) interface{}
+	VisitGrouping(*Grouping) interface{}
+	VisitLiteral(*Literal) interface{}
+	VisitUnary(*Unary) interface{}
 }
 
-type Expr1 struct {
-	x int
-	y string
+type Binary struct {
+	Left Expr
+	Right Expr
+	Op tok.Token
 }
 
-func (e *Expr1) Visit(v Visitor) interface{} {
-	return v.VisitExpr1(e)
+func (e *Binary) Visit(v Visitor) interface{} {
+	return v.VisitBinary(e)
 }
 
-type Expr2 struct {
-	a bool
-	b []byte
+type Grouping struct {
+	Expression Expr
 }
 
-func (e *Expr2) Visit(v Visitor) interface{} {
-	return v.VisitExpr2(e)
+func (e *Grouping) Visit(v Visitor) interface{} {
+	return v.VisitGrouping(e)
+}
+
+type Literal struct {
+	Value interface{}
+}
+
+func (e *Literal) Visit(v Visitor) interface{} {
+	return v.VisitLiteral(e)
+}
+
+type Unary struct {
+	Op tok.Token
+	Right Expr
+}
+
+func (e *Unary) Visit(v Visitor) interface{} {
+	return v.VisitUnary(e)
 }
 
