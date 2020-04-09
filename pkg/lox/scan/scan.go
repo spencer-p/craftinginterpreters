@@ -260,7 +260,7 @@ func (s *Scanner) addToken1(tok TokenType) {
 	s.addToken(tok, nil)
 }
 
-// true if r is alphanumeric (in L, M, N or '_')
+// true if r is alphanumeric (in L, M, N, So (includes emoji) or '_')
 func isAlphaNum(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_' || unicode.IsMark(r)
+	return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_' || unicode.IsMark(r) || unicode.Is(unicode.So, r)
 }
