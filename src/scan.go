@@ -78,6 +78,8 @@ func (s *Scanner) scanToken() {
 		} else {
 			s.addToken1(SLASH)
 		}
+	case '"':
+		s.eatString()
 	case '\n':
 		s.line += 1
 		fallthrough
@@ -122,6 +124,28 @@ func (s *Scanner) match(expect rune, match, nomatch TokenType) TokenType {
 	// here we performed peek and found what we expected
 	s.advance()
 	return match
+}
+
+func (s *Scanner) eatString() {
+	for s.peek() != '"' && !s.atEnd() {
+		if s.peek() == '\n' {
+			s.line += 1
+		}
+		s.advance()
+	}
+
+	// the document ended before the string..
+	if s.atEnd() {
+		complain(s.line, "unterminated string")
+		return
+	}
+
+	s.advance() // corresponds to last "
+
+	// cut out the quotes from the value to add
+	// TODO Implement escape sequences
+	val := s.src[s.start+1 : s.cur-1]
+	s.addToken(STRING, val)
 }
 
 func (s *Scanner) addToken(tok TokenType, lit interface{}) {
