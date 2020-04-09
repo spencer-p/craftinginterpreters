@@ -49,5 +49,7 @@ func fetchFile(path string) ([]byte, error) {
 }
 
 func run(in string) {
-	fmt.Println("your line:", in)
+	scanner := NewScanner(in)
+	toks := scanner.Tokens()
+	fmt.Printf("%v\n", toks)
 }

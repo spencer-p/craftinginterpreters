@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-func complain(line int, msg string) {
-	report(line, "", msg)
+func complain(line int, msg string, extra ...interface{}) {
+	report(line, "", fmt.Sprintf(msg, extra...))
 }
 
 func report(line int, where string, msg string) {
