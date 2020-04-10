@@ -4,8 +4,8 @@ import (
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
-type Expr interface {
-	Visit(Visitor) interface{}
+type Type interface {
+	Accept(Visitor) interface{}
 }
 
 type Visitor interface {
@@ -16,20 +16,20 @@ type Visitor interface {
 }
 
 type Binary struct {
-	Left  Expr
-	Right Expr
-	Op    tok.Token
+	Left Type
+	Right Type
+	Op tok.Token
 }
 
-func (e *Binary) Visit(v Visitor) interface{} {
+func (e *Binary) Accept(v Visitor) interface{} {
 	return v.VisitBinary(e)
 }
 
 type Grouping struct {
-	Expression Expr
+	Expression Type
 }
 
-func (e *Grouping) Visit(v Visitor) interface{} {
+func (e *Grouping) Accept(v Visitor) interface{} {
 	return v.VisitGrouping(e)
 }
 
@@ -37,15 +37,16 @@ type Literal struct {
 	Value interface{}
 }
 
-func (e *Literal) Visit(v Visitor) interface{} {
+func (e *Literal) Accept(v Visitor) interface{} {
 	return v.VisitLiteral(e)
 }
 
 type Unary struct {
-	Op    tok.Token
-	Right Expr
+	Op tok.Token
+	Right Type
 }
 
-func (e *Unary) Visit(v Visitor) interface{} {
+func (e *Unary) Accept(v Visitor) interface{} {
 	return v.VisitUnary(e)
 }
+

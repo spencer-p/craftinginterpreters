@@ -32,7 +32,7 @@ import (
 )
 
 type Expr interface {
-	Visit(Visitor) interface{}
+	Accept(Visitor) interface{}
 }
 
 type Visitor interface {
@@ -45,7 +45,7 @@ type MyExpr struct {
 	m bool
 }
 
-func (e *MyExpr) Visit(v Visitor) interface{} {
+func (e *MyExpr) Accept(v Visitor) interface{} {
 	return v.VisitMyExpr(e)
 }
 

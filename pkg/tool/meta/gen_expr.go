@@ -12,9 +12,9 @@ const (
 	interfaceFunc     = "	Visit%s(*%s) interface{}\n"
 	interfaceSuffix   = "}\n\n"
 
-	exprInterface = "type Expr interface {\n\tVisit(Visitor) interface{}\n}\n\n"
+	exprInterface = "type Type interface {\n\tAccept(Visitor) interface{}\n}\n\n"
 
-	visitorMethod = "func (e *%s) Visit(v Visitor) interface{} {\n\treturn v.Visit%s(e)\n}\n\n"
+	visitorMethod = "func (e *%s) Accept(v Visitor) interface{} {\n\treturn v.Visit%s(e)\n}\n\n"
 
 	importPrefix = "import "
 )
