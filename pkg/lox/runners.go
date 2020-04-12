@@ -1,15 +1,18 @@
 package lox
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/chzyer/readline"
 
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan"
 )
 
-// runFile interprets the code in the given file.
+// RunFile interprets the code in the given file.
 func RunFile(path string) error {
 	bytes, err := fetchFile(path)
 	if err != nil {
@@ -21,16 +24,26 @@ func RunFile(path string) error {
 	return nil
 }
 
-// runPrompt interprets code interactively.
-func RunPrompt() {
-	in := bufio.NewScanner(os.Stdin)
-
-	fmt.Print("> ")
-	for in.Scan() {
-		run(in.Text())
-		fmt.Print("> ")
+// RunPrompt interprets code interactively.
+func RunPrompt() error {
+	rl, err := readline.New("> ")
+	if err != nil {
+		return fmt.Errorf("could not run interactive: %v")
 	}
-	fmt.Println()
+	defer rl.Close()
+
+	for {
+		line, err := rl.Readline()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			} else {
+				return fmt.Errorf("failed to read user input: %v", err)
+			}
+		}
+		run(line)
+	}
+	return nil
 }
 
 // fetchFile turns a path into the bytes of the corresponding file.
