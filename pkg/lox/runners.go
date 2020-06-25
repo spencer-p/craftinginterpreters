@@ -28,7 +28,7 @@ func RunFile(path string) error {
 func RunPrompt() error {
 	rl, err := readline.New("> ")
 	if err != nil {
-		return fmt.Errorf("could not run interactive: %v")
+		return fmt.Errorf("could not run interactive: %v", err)
 	}
 	defer rl.Close()
 
