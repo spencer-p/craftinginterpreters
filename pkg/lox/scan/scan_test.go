@@ -46,10 +46,10 @@ func TestScanner(t *testing.T) {
 		tokens := New(test.in).Tokens()
 		got := make([]TokenType, len(tokens))
 		for i := 0; i < len(tokens); i++ {
-			got[i] = tokens[i].typ
+			got[i] = tokens[i].Typ
 		}
 		if diff := cmp.Diff(got, test.want); diff != "" {
-			t.Errorf("Bad scan of %q (-got,+want): %s", test.in, diff)
+			t.Errorf("Bad scan of %q (-got, +want): %s", test.in, diff)
 		}
 	}
 }

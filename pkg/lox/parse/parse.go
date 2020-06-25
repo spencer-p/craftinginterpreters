@@ -18,7 +18,8 @@ func NewParser(toks []tok.Token) *Parser {
 }
 
 func (p *Parser) AST() expr.Type {
-	return p.expression()
+	return &expr.Literal{1}
+	//return p.expression()
 }
 
 func (p *Parser) expression() expr.Type {
