@@ -36,6 +36,17 @@ func TestParse(t *testing.T) {
 				Typ: BANG_EQUAL,
 			},
 		},
+	}, {
+		in: "2 != 1 == true",
+		want: &expr.Binary{
+			Left: &expr.Binary{
+				Left:  &expr.Literal{2.0},
+				Right: &expr.Literal{1.0},
+				Op:    Token{Typ: BANG_EQUAL},
+			},
+			Right: &expr.Literal{true},
+			Op:    Token{Typ: EQUAL_EQUAL},
+		},
 	}}
 
 	ignoreTokenTypeFields := cmp.FilterPath(func(path cmp.Path) bool {

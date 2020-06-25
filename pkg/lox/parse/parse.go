@@ -47,8 +47,15 @@ func (p *Parser) comparison() expr.Type {
 
 func (p *Parser) primary() expr.Type {
 	if p.match(NUMBER) {
-		tok := p.previous()
-		return &expr.Literal{tok.Lit}
+		return &expr.Literal{p.previous().Lit}
+	}
+
+	if p.match(TRUE) {
+		return &expr.Literal{true}
+	}
+
+	if p.match(FALSE) {
+		return &expr.Literal{false}
 	}
 
 	return nil
