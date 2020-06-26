@@ -1,6 +1,8 @@
 package parse
 
 import (
+	"fmt"
+
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/expr"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
@@ -17,8 +19,16 @@ func NewParser(toks []Token) *Parser {
 	}
 }
 
-func (p *Parser) AST() expr.Type {
-	return p.expression()
+func (p *Parser) AST() (expr.Type, error) {
+	var err error
+	defer func() {
+		// TODO - accumulate multiple errors somehow
+		if r := recover(); r != nil {
+			// Type assert will have no effect if it fails
+			err, _ = r.(error)
+		}
+	}()
+	return p.expression(), err
 }
 
 func (p *Parser) expression() expr.Type {
@@ -42,20 +52,79 @@ func (p *Parser) equality() expr.Type {
 }
 
 func (p *Parser) comparison() expr.Type {
+	e := p.addition()
+
+	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
+		op := p.previous()
+		right := p.addition()
+		e = &expr.Binary{
+			Left:  e,
+			Right: right,
+			Op:    op,
+		}
+	}
+
+	return e
+}
+
+func (p *Parser) addition() expr.Type {
+	e := p.multiplication()
+
+	for p.match(MINUS, PLUS) {
+		op := p.previous()
+		right := p.multiplication()
+		e = &expr.Binary{
+			Left:  e,
+			Right: right,
+			Op:    op,
+		}
+	}
+
+	return e
+}
+
+func (p *Parser) multiplication() expr.Type {
+	e := p.unary()
+
+	for p.match(SLASH, STAR) {
+		op := p.previous()
+		right := p.unary()
+		e = &expr.Binary{
+			Left:  e,
+			Right: right,
+			Op:    op,
+		}
+	}
+
+	return e
+}
+
+func (p *Parser) unary() expr.Type {
+	if p.match(BANG, MINUS) {
+		op := p.previous()
+		right := p.unary()
+		return &expr.Unary{
+			Op:    op,
+			Right: right,
+		}
+	}
+
 	return p.primary()
 }
 
 func (p *Parser) primary() expr.Type {
-	if p.match(NUMBER) {
-		return &expr.Literal{p.previous().Lit}
-	}
-
 	if p.match(TRUE) {
 		return &expr.Literal{true}
-	}
-
-	if p.match(FALSE) {
+	} else if p.match(FALSE) {
 		return &expr.Literal{false}
+	} else if p.match(NIL) {
+		return &expr.Literal{nil}
+	} else if p.match(NUMBER, STRING) {
+		return &expr.Literal{p.previous().Lit}
+	} else if p.match(LEFT_PAREN) {
+		e := p.expression()
+		p.consume(RIGHT_PAREN, "Expect ')' after expression.")
+		return &expr.Grouping{e}
 	}
 
 	return nil
@@ -96,4 +165,21 @@ func (p *Parser) peek() Token {
 
 func (p *Parser) previous() Token {
 	return p.tokens[p.current-1]
+}
+
+func (p *Parser) consume(typ TokenType, msg string) Token {
+	if p.check(typ) {
+		return p.advance()
+	}
+
+	panic(err(p.peek(), msg))
+}
+
+func err(tok Token, msg string) error {
+	spot := tok.Lexeme
+	if tok.Typ == EOF {
+		spot = `EOF`
+	}
+
+	return fmt.Errorf("%d at %q: %s", tok.Line, spot, msg)
 }
