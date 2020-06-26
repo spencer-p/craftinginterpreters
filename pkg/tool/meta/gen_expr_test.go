@@ -31,7 +31,7 @@ import (
 	"fmt"
 )
 
-type Expr interface {
+type Type interface {
 	Accept(Visitor) interface{}
 }
 
