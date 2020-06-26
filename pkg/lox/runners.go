@@ -9,6 +9,8 @@ import (
 
 	"github.com/chzyer/readline"
 
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/parse"
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/prettyprint"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan"
 )
 
@@ -64,7 +66,12 @@ func fetchFile(path string) ([]byte, error) {
 }
 
 func run(in string) {
-	scanner := scan.New(in)
-	toks := scanner.Tokens()
-	fmt.Printf("%v\n", toks)
+	toks := scan.New(in).Tokens()
+	ast, err := parse.New(toks).AST()
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return
+	}
+
+	fmt.Println(ast.Accept(&prettyprint.Lisp{}))
 }

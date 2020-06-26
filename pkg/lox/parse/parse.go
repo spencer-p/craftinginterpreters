@@ -12,23 +12,21 @@ type Parser struct {
 	current int
 }
 
-func NewParser(toks []Token) *Parser {
+func New(toks []Token) *Parser {
 	return &Parser{
 		tokens:  toks,
 		current: 0,
 	}
 }
 
-func (p *Parser) AST() (expr.Type, error) {
-	var err error
+func (p *Parser) AST() (e expr.Type, err error) {
 	defer func() {
 		// TODO - accumulate multiple errors somehow
-		if r := recover(); r != nil {
-			// Type assert will have no effect if it fails
-			err, _ = r.(error)
-		}
+		// Type assert will have no effect if it fails
+		err, _ = recover().(error)
 	}()
-	return p.expression(), err
+	e = p.expression()
+	return
 }
 
 func (p *Parser) expression() expr.Type {
@@ -127,7 +125,7 @@ func (p *Parser) primary() expr.Type {
 		return &expr.Grouping{e}
 	}
 
-	return nil
+	panic(err(p.peek(), "Expected expression."))
 }
 
 func (p *Parser) match(types ...TokenType) bool {
@@ -181,5 +179,5 @@ func err(tok Token, msg string) error {
 		spot = `EOF`
 	}
 
-	return fmt.Errorf("%d at %q: %s", tok.Line, spot, msg)
+	return fmt.Errorf("line %d at %q: %s", tok.Line, spot, msg)
 }

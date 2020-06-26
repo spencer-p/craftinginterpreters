@@ -118,7 +118,7 @@ func TestParse(t *testing.T) {
 	for _, row := range table {
 		t.Run(row.in, func(t *testing.T) {
 			tokens := scan.New(row.in).Tokens() // not too happy about dependency. writing tokens is hard.
-			got, err := NewParser(tokens).AST()
+			got, err := New(tokens).AST()
 			if err != nil && row.wanterr == false {
 				t.Errorf("Parse %q unexpected error %v", row.in, err)
 			} else if diff := cmp.Diff(got, row.want, ignoreTokenTypeFields); diff != "" {
