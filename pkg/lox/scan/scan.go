@@ -1,15 +1,18 @@
 package scan
 
 import (
+	"errors"
 	"strconv"
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan/errtrack"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
 var (
+	ScanFailed = errors.New("Failed to scan")
+
 	ONEWIDTHS = map[rune]TokenType{
 		'(': LEFT_PAREN,
 		')': RIGHT_PAREN,
@@ -67,13 +70,21 @@ func New(src string) *Scanner {
 }
 
 // Tokens scans the input source and returns its tokens.
-func (s *Scanner) Tokens() []Token {
+func (s *Scanner) Tokens() ([]Token, error) {
+	var err error
+
 	for !s.atEnd() {
 		s.start = s.cur
 		s.scanToken()
 	}
+
 	s.tokens = append(s.tokens, Token{EOF, "", nil, s.line})
-	return s.tokens
+
+	if errtrack.Err() {
+		err = ScanFailed
+	}
+
+	return s.tokens, err
 }
 
 func (s *Scanner) atEnd() bool {

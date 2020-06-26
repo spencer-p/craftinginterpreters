@@ -20,6 +20,7 @@ func Complain(line int, msg string, extra ...interface{}) {
 }
 
 func Report(line int, where string, msg string) {
+	hadError = true
 	fmt.Fprintf(output, "[line %d] Error%s: %s\n", line, where, msg)
 }
 

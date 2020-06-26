@@ -66,7 +66,12 @@ func fetchFile(path string) ([]byte, error) {
 }
 
 func run(in string) {
-	toks := scan.New(in).Tokens()
+	toks, err := scan.New(in).Tokens()
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return
+	}
+
 	ast, err := parse.New(toks).AST()
 	if err != nil {
 		fmt.Printf("%v\n", err)

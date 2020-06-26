@@ -43,7 +43,7 @@ func TestScanner(t *testing.T) {
 	}}
 
 	for _, test := range table {
-		tokens := New(test.in).Tokens()
+		tokens, _ := New(test.in).Tokens() // TODO unit test errors
 		got := make([]TokenType, len(tokens))
 		for i := 0; i < len(tokens); i++ {
 			got[i] = tokens[i].Typ
