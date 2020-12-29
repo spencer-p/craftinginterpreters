@@ -179,5 +179,5 @@ func err(tok Token, msg string) error {
 		spot = `EOF`
 	}
 
-	return fmt.Errorf("[line %d] at %q: %s", tok.Line, spot, msg)
+	return fmt.Errorf("[line %d:%d] at %q: %s", tok.Line, tok.Char, spot, msg)
 }

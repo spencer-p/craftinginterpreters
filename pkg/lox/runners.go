@@ -9,8 +9,9 @@ import (
 
 	"github.com/chzyer/readline"
 
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/interpret"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/parse"
-	"github.com/spencer-p/craftinginterpreters/pkg/lox/prettyprint"
+	_ "github.com/spencer-p/craftinginterpreters/pkg/lox/prettyprint"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan"
 )
 
@@ -78,5 +79,6 @@ func run(in string) {
 		return
 	}
 
-	fmt.Println(ast.Accept(&prettyprint.Lisp{}))
+	//fmt.Println(ast.Accept(&prettyprint.Lisp{}))
+	fmt.Println(interpret.Stringify(interpret.Do(ast)))
 }

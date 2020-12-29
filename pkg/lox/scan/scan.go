@@ -135,7 +135,7 @@ func (s *Scanner) scanToken() {
 		} else if isAlphaNum(r) {
 			s.eatIdent()
 		} else {
-			errtrack.Complain(s.line, "unexpected rune %q", r)
+			errtrack.Complain(s.line, s.charLineIndex(), "unexpected rune %q", r)
 		}
 	}
 
@@ -216,7 +216,7 @@ func (s *Scanner) eatString() {
 
 	// the document ended before the string..
 	if s.atEnd() {
-		errtrack.Complain(s.line, "unterminated string")
+		errtrack.Complain(s.line, s.charLineIndex(), "unterminated string")
 		return
 	}
 
@@ -243,7 +243,7 @@ func (s *Scanner) eatNumber() {
 
 	val, err := strconv.ParseFloat(s.src[s.start:s.cur], 64)
 	if err != nil {
-		errtrack.Complain(s.line, "number does not parse: %v", err)
+		errtrack.Complain(s.line, s.charLineIndex(), "number does not parse: %v", err)
 		return
 	}
 	s.addToken(NUMBER, val)

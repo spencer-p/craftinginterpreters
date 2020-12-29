@@ -1,0 +1,21 @@
+package interpret
+
+func TestInterpret(t *testing.T) {
+	table := map[string]struct {
+		in      expr.ExprType
+		out     interface{}
+		wantErr bool
+	}{
+		"string": {
+			in: &expr.Literal{
+				Value: "hello, world",
+			},
+			out: "hello, world",
+		}, "number" {
+			in: &expr.Literal{
+				Value: 42.0,
+			}
+			out: 43,
+		}
+	}
+}
