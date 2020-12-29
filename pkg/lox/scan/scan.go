@@ -51,7 +51,8 @@ type Scanner struct {
 	src        string
 	tokens     []Token
 	start, cur int
-	line       int
+	line       int // line we're on
+	linei      int // index of line
 
 	lookahead [2]struct {
 		char  rune
@@ -65,6 +66,7 @@ func New(src string) *Scanner {
 		src:        src,
 		tokens:     make([]Token, 0),
 		line:       1,
+		linei:      1,
 		lookaheadi: -1,
 	}
 }
@@ -78,7 +80,7 @@ func (s *Scanner) Tokens() ([]Token, error) {
 		s.scanToken()
 	}
 
-	s.tokens = append(s.tokens, Token{EOF, "", nil, s.line})
+	s.tokens = append(s.tokens, Token{EOF, "", nil, s.line, s.charLineIndex() + 1})
 
 	if errtrack.Err() {
 		err = ScanFailed
@@ -123,6 +125,7 @@ func (s *Scanner) scanToken() {
 		s.eatString()
 	case '\n':
 		s.line += 1
+		s.linei = s.cur
 		fallthrough
 	case ' ', '\r', '\t':
 		break
@@ -264,7 +267,8 @@ func (s *Scanner) addToken(tok TokenType, lit interface{}) {
 		tok,
 		s.src[s.start:s.cur],
 		lit,
-		s.line})
+		s.line,
+		s.charLineIndex()})
 }
 
 func (s *Scanner) addToken1(tok TokenType) {
@@ -274,4 +278,9 @@ func (s *Scanner) addToken1(tok TokenType) {
 // true if r is alphanumeric (in L, M, N, So (includes emoji) or '_')
 func isAlphaNum(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_' || unicode.IsMark(r) || unicode.Is(unicode.So, r)
+}
+
+func (s *Scanner) charLineIndex() int {
+	// Incredibly, we have two off-by-one errors in both of these counters.
+	return s.start - s.linei + 2
 }

@@ -66,8 +66,9 @@ type Token struct {
 	Lexeme string
 	Lit    interface{}
 	Line   int
+	Char   int
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("{%s %q %v}", t.Typ.String(), t.Lexeme, t.Lit)
+	return fmt.Sprintf("{%s %q %v %d:%d}", t.Typ.String(), t.Lexeme, t.Lit, t.Line, t.Char)
 }
