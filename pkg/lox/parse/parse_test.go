@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/expr"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
@@ -117,10 +118,11 @@ func TestParse(t *testing.T) {
 
 	for _, row := range table {
 		t.Run(row.in, func(t *testing.T) {
-			tokens, _ := scan.New(row.in).Tokens() // not too happy about dependency. writing tokens is hard.
-			got, err := New(tokens).AST()
-			if err != nil && row.wanterr == false {
-				t.Errorf("Parse %q unexpected error %v", row.in, err)
+			fake := errtrack.NewFake()
+			tokens := scan.New(fake.Tracker, row.in).Tokens() // not too happy about dependency. writing tokens is hard.
+			got := New(fake.Tracker, tokens).AST()
+			if fake.Tracker.HadError() && row.wanterr == false {
+				t.Errorf("Parse %q unexpected error %q", row.in, fake.Errors())
 			} else if diff := cmp.Diff(got, row.want, ignoreTokenTypeFields); diff != "" {
 				t.Errorf("Parse %q failed (-got, +want): %s", row.in, diff)
 			}

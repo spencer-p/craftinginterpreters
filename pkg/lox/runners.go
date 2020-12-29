@@ -9,6 +9,7 @@ import (
 
 	"github.com/chzyer/readline"
 
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/interpret"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/parse"
 	_ "github.com/spencer-p/craftinginterpreters/pkg/lox/prettyprint"
@@ -67,18 +68,21 @@ func fetchFile(path string) ([]byte, error) {
 }
 
 func run(in string) {
-	toks, err := scan.New(in).Tokens()
-	if err != nil {
-		fmt.Printf("%v\n", err)
+	tracker := errtrack.New()
+
+	toks := scan.New(tracker, in).Tokens()
+	if tracker.HadError() {
 		return
 	}
 
-	ast, err := parse.New(toks).AST()
-	if err != nil {
-		fmt.Printf("%v\n", err)
+	ast := parse.New(tracker, toks).AST()
+	if tracker.HadError() {
 		return
 	}
 
-	//fmt.Println(ast.Accept(&prettyprint.Lisp{}))
-	fmt.Println(interpret.Stringify(interpret.Do(ast)))
+	interpreter := interpret.New(tracker)
+	result := interpreter.Eval(ast)
+	if !tracker.HadError() {
+		fmt.Println(interpret.Stringify(result))
+	}
 }

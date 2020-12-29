@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
@@ -43,7 +44,8 @@ func TestScanner(t *testing.T) {
 	}}
 
 	for _, test := range table {
-		tokens, _ := New(test.in).Tokens() // TODO unit test errors
+		tracker := errtrack.New()
+		tokens := New(tracker, test.in).Tokens() // TODO unit test errors
 		got := make([]TokenType, len(tokens))
 		for i := 0; i < len(tokens); i++ {
 			got[i] = tokens[i].Typ

@@ -1,8 +1,9 @@
 package parse
 
 import (
-	"fmt"
+	"errors"
 
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/expr"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
@@ -10,23 +11,20 @@ import (
 type Parser struct {
 	tokens  []Token
 	current int
+	tracker *errtrack.Tracker
 }
 
-func New(toks []Token) *Parser {
+func New(tracker *errtrack.Tracker, toks []Token) *Parser {
 	return &Parser{
 		tokens:  toks,
 		current: 0,
+		tracker: tracker,
 	}
 }
 
-func (p *Parser) AST() (e expr.Type, err error) {
-	defer func() {
-		// TODO - accumulate multiple errors somehow
-		// Type assert will have no effect if it fails
-		err, _ = recover().(error)
-	}()
-	e = p.expression()
-	return
+func (p *Parser) AST() expr.Type {
+	defer p.tracker.CatchFatal()
+	return p.expression()
 }
 
 func (p *Parser) expression() expr.Type {
@@ -125,7 +123,11 @@ func (p *Parser) primary() expr.Type {
 		return &expr.Grouping{e}
 	}
 
-	panic(err(p.peek(), "Expected expression."))
+	p.tracker.Fatal(errtrack.LoxError{
+		Message: errors.New("Expected expression."),
+		Token:   p.peek(),
+	})
+	return nil
 }
 
 func (p *Parser) match(types ...TokenType) bool {
@@ -170,14 +172,9 @@ func (p *Parser) consume(typ TokenType, msg string) Token {
 		return p.advance()
 	}
 
-	panic(err(p.peek(), msg))
-}
-
-func err(tok Token, msg string) error {
-	spot := tok.Lexeme
-	if tok.Typ == EOF {
-		spot = `EOF`
-	}
-
-	return fmt.Errorf("[line %d:%d] at %q: %s", tok.Line, tok.Char, spot, msg)
+	p.tracker.Fatal(errtrack.LoxError{
+		Message: errors.New(msg),
+		Token:   p.peek(),
+	})
+	return Token{} // unreachable
 }

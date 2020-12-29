@@ -1,10 +1,18 @@
 package interpret
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
+)
+
+var (
+	ErrorNotANumber = errors.New("Operand must be number.")
+	ErrorNotAString = errors.New("Operand must be string.")
+	ErrorUnknownOp  = errors.New("Unknown operand.")
 )
 
 func truthy(value interface{}) bool {
@@ -40,26 +48,22 @@ func equal(a, b interface{}) (result bool) {
 	}
 }
 
-func checkNumber(op tok.Token, value interface{}) {
+func (i *Interpreter) checkNumber(op tok.Token, value interface{}) {
 	if _, ok := value.(float64); !ok {
-		err := RuntimeError{
+		i.tracker.Fatal(errtrack.LoxError{
 			Message: ErrorNotANumber,
 			Token:   op,
-		}
-		panic(err)
+		})
 	}
 }
 
-func checkNumbers(op tok.Token, values ...interface{}) {
+func (i *Interpreter) checkNumbers(op tok.Token, values ...interface{}) {
 	for _, v := range values {
-		checkNumber(op, v)
+		i.checkNumber(op, v)
 	}
 }
 
-func Stringify(result interface{}, err error) string {
-	if err != nil {
-		return err.Error()
-	}
+func Stringify(result interface{}) string {
 	s := fmt.Sprintf("%v", result)
 	if _, ok := result.(float64); ok && strings.HasSuffix(s, ".0") {
 		// Remove .0 only from floats

@@ -2,11 +2,12 @@ package scan
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan/errtrack"
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
@@ -59,22 +60,23 @@ type Scanner struct {
 		width int
 	}
 	lookaheadi int
+
+	tracker *errtrack.Tracker
 }
 
-func New(src string) *Scanner {
+func New(tracker *errtrack.Tracker, src string) *Scanner {
 	return &Scanner{
 		src:        src,
 		tokens:     make([]Token, 0),
 		line:       1,
 		linei:      1,
 		lookaheadi: -1,
+		tracker:    tracker,
 	}
 }
 
 // Tokens scans the input source and returns its tokens.
-func (s *Scanner) Tokens() ([]Token, error) {
-	var err error
-
+func (s *Scanner) Tokens() []Token {
 	for !s.atEnd() {
 		s.start = s.cur
 		s.scanToken()
@@ -82,11 +84,7 @@ func (s *Scanner) Tokens() ([]Token, error) {
 
 	s.tokens = append(s.tokens, Token{EOF, "", nil, s.line, s.charLineIndex() + 1})
 
-	if errtrack.Err() {
-		err = ScanFailed
-	}
-
-	return s.tokens, err
+	return s.tokens
 }
 
 func (s *Scanner) atEnd() bool {
@@ -135,7 +133,14 @@ func (s *Scanner) scanToken() {
 		} else if isAlphaNum(r) {
 			s.eatIdent()
 		} else {
-			errtrack.Complain(s.line, s.charLineIndex(), "unexpected rune %q", r)
+			s.tracker.Report(errtrack.LoxError{
+				Message: fmt.Errorf("Unexpected rune %q", r),
+				Token: Token{
+					Lexeme: string(r),
+					Line:   s.line,
+					Char:   s.charLineIndex(),
+				},
+			})
 		}
 	}
 
@@ -216,7 +221,13 @@ func (s *Scanner) eatString() {
 
 	// the document ended before the string..
 	if s.atEnd() {
-		errtrack.Complain(s.line, s.charLineIndex(), "unterminated string")
+		s.tracker.Report(errtrack.LoxError{
+			Message: errors.New("Unterminated string."),
+			Token: Token{
+				Line: s.line,
+				Char: s.charLineIndex(),
+			},
+		})
 		return
 	}
 
@@ -241,9 +252,17 @@ func (s *Scanner) eatNumber() {
 		}
 	}
 
-	val, err := strconv.ParseFloat(s.src[s.start:s.cur], 64)
+	substr := s.src[s.start:s.cur]
+	val, err := strconv.ParseFloat(substr, 64)
 	if err != nil {
-		errtrack.Complain(s.line, s.charLineIndex(), "number does not parse: %v", err)
+		s.tracker.Report(errtrack.LoxError{
+			Message: fmt.Errorf("Number does not parse: %v.", err),
+			Token: Token{
+				Lexeme: substr,
+				Line:   s.line,
+				Char:   s.charLineIndex(),
+			},
+		})
 		return
 	}
 	s.addToken(NUMBER, val)
