@@ -1,26 +1,46 @@
 package interpret
 
 import (
+	"fmt"
+	"io"
+	"os"
+
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/expr"
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/stmt"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
 // Interpreter executes code with the visitor pattern.
 type Interpreter struct {
 	tracker *errtrack.Tracker
+	out     io.Writer
 }
 
-// Verify it satisfies the type
+// Verify it satisfies the visitor types
 var _ expr.Visitor = &Interpreter{}
+var _ stmt.Visitor = &Interpreter{}
 
 func New(tracker *errtrack.Tracker) *Interpreter {
-	return &Interpreter{tracker}
+	return &Interpreter{
+		tracker: tracker,
+		out:     os.Stdout,
+	}
 }
 
-func (i *Interpreter) Eval(e expr.Type) interface{} {
+func (i *Interpreter) Interpret(stmts []stmt.Type) {
 	defer i.tracker.CatchFatal()
-	return e.Accept(i)
+	for _, st := range stmts {
+		i.execute(st)
+	}
+}
+
+func (i *Interpreter) SetOutput(w io.Writer) {
+	i.out = w
+}
+
+func (i *Interpreter) execute(st stmt.Type) {
+	st.Accept(i)
 }
 
 func (i *Interpreter) eval(e expr.Type) interface{} {
@@ -106,4 +126,15 @@ func (i *Interpreter) VisitUnary(e *expr.Unary) interface{} {
 		right = !truthy(right)
 	}
 	return right
+}
+
+func (i *Interpreter) VisitExpression(st *stmt.Expression) interface{} {
+	i.eval(st.Expr)
+	return nil
+}
+
+func (i *Interpreter) VisitPrint(st *stmt.Print) interface{} {
+	val := i.eval(st.Expr)
+	fmt.Fprintln(i.out, Stringify(val))
+	return nil
 }

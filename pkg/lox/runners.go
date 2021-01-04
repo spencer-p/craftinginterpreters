@@ -80,9 +80,5 @@ func run(in string) {
 		return
 	}
 
-	interpreter := interpret.New(tracker)
-	result := interpreter.Eval(ast)
-	if !tracker.HadError() {
-		fmt.Println(interpret.Stringify(result))
-	}
+	interpret.New(tracker).Interpret(ast)
 }
