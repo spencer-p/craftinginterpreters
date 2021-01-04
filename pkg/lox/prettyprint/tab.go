@@ -66,7 +66,7 @@ func (p *WithTabs) VisitGrouping(e *expr.Grouping) interface{} {
 	fmt.Fprintf(p.out, "(\n")
 
 	p.push(1)
-	e.Expression.Accept(p)
+	e.Expr.Accept(p)
 	p.pop()
 
 	p.tabs()

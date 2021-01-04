@@ -9,20 +9,22 @@ import (
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/expr"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan"
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/stmt"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
 func TestParse(t *testing.T) {
 	table := []struct {
-		in      string
-		want    expr.Type
-		wanterr bool
+		in       string
+		want     []stmt.Type
+		wantExpr expr.Type
+		wanterr  bool
 	}{{
-		in:   `1`,
-		want: &expr.Literal{1.0},
+		in:       `1`,
+		wantExpr: &expr.Literal{1.0},
 	}, {
 		in: `1 == 2`,
-		want: &expr.Binary{
+		wantExpr: &expr.Binary{
 			Left:  &expr.Literal{1.0},
 			Right: &expr.Literal{2.0},
 			Op: Token{
@@ -31,7 +33,7 @@ func TestParse(t *testing.T) {
 		},
 	}, {
 		in: `2 != 1`,
-		want: &expr.Binary{
+		wantExpr: &expr.Binary{
 			Left:  &expr.Literal{2.0},
 			Right: &expr.Literal{1.0},
 			Op: Token{
@@ -40,7 +42,7 @@ func TestParse(t *testing.T) {
 		},
 	}, {
 		in: `2 != 1 == true`,
-		want: &expr.Binary{
+		wantExpr: &expr.Binary{
 			Left: &expr.Binary{
 				Left:  &expr.Literal{2.0},
 				Right: &expr.Literal{1.0},
@@ -51,21 +53,21 @@ func TestParse(t *testing.T) {
 		},
 	}, {
 		in: `1 < 2`,
-		want: &expr.Binary{
+		wantExpr: &expr.Binary{
 			Left:  &expr.Literal{1.0},
 			Right: &expr.Literal{2.0},
 			Op:    Token{Typ: LESS},
 		},
 	}, {
 		in: `1 + 2`,
-		want: &expr.Binary{
+		wantExpr: &expr.Binary{
 			Left:  &expr.Literal{1.0},
 			Right: &expr.Literal{2.0},
 			Op:    Token{Typ: PLUS},
 		},
 	}, {
 		in: `1 + 2 * 3`,
-		want: &expr.Binary{
+		wantExpr: &expr.Binary{
 			Left: &expr.Literal{1.0},
 			Right: &expr.Binary{
 				Left:  &expr.Literal{2.0},
@@ -76,25 +78,25 @@ func TestParse(t *testing.T) {
 		},
 	}, {
 		in: `-12`,
-		want: &expr.Unary{
+		wantExpr: &expr.Unary{
 			Op:    Token{Typ: MINUS},
 			Right: &expr.Literal{12.0},
 		},
 	}, {
 		in: `!false`,
-		want: &expr.Unary{
+		wantExpr: &expr.Unary{
 			Op:    Token{Typ: BANG},
 			Right: &expr.Literal{false},
 		},
 	}, {
-		in:   `"hello world!"`,
-		want: &expr.Literal{"hello world!"},
+		in:       `"hello world!"`,
+		wantExpr: &expr.Literal{"hello world!"},
 	}, {
-		in:   `nil`,
-		want: &expr.Literal{nil},
+		in:       `nil`,
+		wantExpr: &expr.Literal{nil},
 	}, {
 		in: `(1 + 2)`,
-		want: &expr.Grouping{&expr.Binary{
+		wantExpr: &expr.Grouping{&expr.Binary{
 			Left:  &expr.Literal{1.0},
 			Right: &expr.Literal{2.0},
 			Op:    Token{Typ: PLUS},
@@ -102,6 +104,21 @@ func TestParse(t *testing.T) {
 	}, {
 		in:      `(1 + 2`,
 		wanterr: true,
+	}, {
+		in: `print "hello world";`,
+		want: []stmt.Type{&stmt.Print{
+			Expr: &expr.Literal{"hello world"},
+		}},
+	}, {
+		in:      `print "hello world"`,
+		wanterr: true,
+	}, {
+		in: `1;
+		print "hello world";`,
+		want: []stmt.Type{
+			&stmt.Expression{Expr: &expr.Literal{1.0}},
+			&stmt.Print{Expr: &expr.Literal{"hello world"}},
+		},
 	}}
 
 	ignoreTokenTypeFields := cmp.FilterPath(func(path cmp.Path) bool {
@@ -118,6 +135,12 @@ func TestParse(t *testing.T) {
 
 	for _, row := range table {
 		t.Run(row.in, func(t *testing.T) {
+			// quick hack to box expression tests into statements
+			if row.wantExpr != nil {
+				row.want = []stmt.Type{&stmt.Expression{row.wantExpr}}
+				row.in = row.in + ";"
+			}
+
 			fake := errtrack.NewFake()
 			tokens := scan.New(fake.Tracker, row.in).Tokens() // not too happy about dependency. writing tokens is hard.
 			got := New(fake.Tracker, tokens).AST()

@@ -5,6 +5,7 @@ import (
 
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/expr"
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/stmt"
 	. "github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
@@ -22,9 +23,36 @@ func New(tracker *errtrack.Tracker, toks []Token) *Parser {
 	}
 }
 
-func (p *Parser) AST() expr.Type {
+func (p *Parser) AST() []stmt.Type {
 	defer p.tracker.CatchFatal()
-	return p.expression()
+	return p.parse()
+}
+
+func (p *Parser) parse() []stmt.Type {
+	var statements []stmt.Type
+	for !p.atEnd() {
+		statements = append(statements, p.statement())
+	}
+	return statements
+}
+
+func (p *Parser) statement() stmt.Type {
+	if p.match(PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() stmt.Type {
+	val := p.expression()
+	p.consume(SEMICOLON, "Expect ';' after value.")
+	return &stmt.Print{val}
+}
+
+func (p *Parser) expressionStatement() stmt.Type {
+	e := p.expression()
+	p.consume(SEMICOLON, "Expect ';' after value.")
+	return &stmt.Expression{e}
 }
 
 func (p *Parser) expression() expr.Type {

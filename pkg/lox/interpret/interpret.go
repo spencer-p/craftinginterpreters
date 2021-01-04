@@ -89,7 +89,7 @@ func (i *Interpreter) VisitBinary(e *expr.Binary) interface{} {
 }
 
 func (i *Interpreter) VisitGrouping(e *expr.Grouping) interface{} {
-	return i.eval(e.Expression)
+	return i.eval(e.Expr)
 }
 
 func (i *Interpreter) VisitLiteral(e *expr.Literal) interface{} {

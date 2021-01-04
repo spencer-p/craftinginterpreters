@@ -13,7 +13,7 @@ func (p *Lisp) VisitBinary(e *expr.Binary) interface{} {
 }
 
 func (p *Lisp) VisitGrouping(e *expr.Grouping) interface{} {
-	return fmt.Sprintf("(grp %s)", e.Expression.Accept(p).(string))
+	return fmt.Sprintf("(grp %s)", e.Expr.Accept(p).(string))
 }
 
 func (p *Lisp) VisitLiteral(e *expr.Literal) interface{} {

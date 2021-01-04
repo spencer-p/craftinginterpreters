@@ -26,7 +26,7 @@ func (e *Binary) Accept(v Visitor) interface{} {
 }
 
 type Grouping struct {
-	Expression Type
+	Expr Type
 }
 
 func (e *Grouping) Accept(v Visitor) interface{} {

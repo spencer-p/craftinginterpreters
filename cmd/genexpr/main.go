@@ -26,11 +26,6 @@ const (
 	PACKAGE_KEY = "GOPACKAGE"
 )
 
-func die(msg string) {
-	fmt.Fprintln(os.Stderr, msg)
-	os.Exit(1)
-}
-
 func main() {
 	filename := os.Getenv(FNAME_KEY)
 	packagename := os.Getenv(PACKAGE_KEY)
