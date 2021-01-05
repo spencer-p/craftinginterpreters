@@ -15,7 +15,7 @@ func TestInterpret(t *testing.T) {
 	table := map[string]struct {
 		in      string
 		want    string
-		wantErr bool
+		wanterr bool
 	}{
 		"string":             {in: "print \"hello, world\";", want: `hello, world`},
 		"number":             {in: "print 42;", want: `42`},
@@ -28,18 +28,18 @@ func TestInterpret(t *testing.T) {
 		"types not equal":    {in: "print 3 == \"three\";", want: `false`},
 		"nil comp":           {in: "print nil == nil;", want: `true`},
 		"string comp":        {in: `print "one" == "one";`, want: `true`},
-		"-true":              {in: "print -true;", wantErr: true},
-		"bad add":            {in: "print 1 + \"two\";", wantErr: true},
-		"bad add 2":          {in: "print \"two\" + 1;", wantErr: true},
+		"-true":              {in: "print -true;", wanterr: true},
+		"bad add":            {in: "print 1 + \"two\";", wanterr: true},
+		"bad add 2":          {in: "print \"two\" + 1;", wanterr: true},
 		"two stmt":           {in: "print 1; print 2;", want: "1\n2"},
 		"assignment":         {in: "var x = 2; print x;", want: "2"},
-		"lookup fail":        {in: "print x;", wantErr: true},
+		"lookup fail":        {in: "print x;", wanterr: true},
 		"block scope":        {in: "{var x = 1; print x;}", want: "1"},
-		"block out of scope": {in: "{var x = 1;} print x;", wantErr: true},
+		"block out of scope": {in: "{var x = 1;} print x;", wanterr: true},
 		"shadowing":          {in: "var x = 2; {var x = 1;} print x;", want: "2"},
 		"assign to outer":    {in: "var x = 2; {x = 1;} print x;", want: "1"},
-		"assign to descoped": {in: "{var x = 1;} x = 2;", wantErr: true},
-		"use uninitialized":  {in: "var x; print x;", wantErr: true},
+		"assign to descoped": {in: "{var x = 1;} x = 2;", wanterr: true},
+		"use uninitialized":  {in: "var x; print x;", wanterr: true},
 	}
 
 	for name, tc := range table {
@@ -61,7 +61,7 @@ func TestInterpret(t *testing.T) {
 			interpreter.SetOutput(&fakeOut)
 			interpreter.Interpret(ast)
 			if fake.Tracker.HadError() {
-				if tc.wantErr {
+				if tc.wanterr {
 					return // successfully failed, move on
 				} else {
 					t.Errorf("unexpected error: %q", fake.Errors())
