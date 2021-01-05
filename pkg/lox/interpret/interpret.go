@@ -146,7 +146,7 @@ func (i *Interpreter) VisitVariable(e *expr.Variable) interface{} {
 }
 
 func (i *Interpreter) VisitVar(st *stmt.Var) interface{} {
-	var val interface{}
+	var val interface{} = Uninitialized{}
 	if st.Initializer != nil {
 		val = i.eval(st.Initializer)
 	}
@@ -159,4 +159,22 @@ func (i *Interpreter) VisitAssign(e *expr.Assign) interface{} {
 	val := i.eval(e.Value)
 	i.env.Assign(e.Name, val)
 	return val
+}
+
+func (i *Interpreter) VisitBlock(st *stmt.Block) interface{} {
+	i.executeBlock(st.Statements, NewEnv(i.tracker, i.env))
+	return nil
+}
+
+func (i *Interpreter) executeBlock(statements []stmt.Type, env *Env) {
+	// Store the previous env and guarantee we reinstate it
+	prev := i.env
+	defer func() {
+		i.env = prev
+	}()
+
+	i.env = env
+	for _, st := range statements {
+		i.execute(st)
+	}
 }

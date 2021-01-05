@@ -127,6 +127,16 @@ func TestParse(t *testing.T) {
 		want: []stmt.Type{&stmt.Expression{
 			&expr.Assign{Token{}, &expr.Literal{2.0}},
 		}},
+	}, {
+		in: `{ 1; 2; 3; }`,
+		want: []stmt.Type{&stmt.Block{[]stmt.Type{
+			&stmt.Expression{&expr.Literal{1.0}},
+			&stmt.Expression{&expr.Literal{2.0}},
+			&stmt.Expression{&expr.Literal{3.0}},
+		}}},
+	}, {
+		in:      `{ 1; 2; 3;`,
+		wanterr: true,
 	}}
 
 	ignoreTokenTypeFields := cmp.FilterPath(func(path cmp.Path) bool {

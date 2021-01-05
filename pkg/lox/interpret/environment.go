@@ -1,6 +1,8 @@
 package interpret
 
 import (
+	"errors"
+
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
@@ -10,6 +12,8 @@ type Env struct {
 	tracker   *errtrack.Tracker
 	enclosing *Env
 }
+
+type Uninitialized struct{}
 
 // NewEnv constructs an empty environment with enclosing parent.
 // Enclosing may be nil.
@@ -40,6 +44,11 @@ func (e *Env) Get(name tok.Token) interface{} {
 	val, ok := e.table[name.Lexeme]
 	if !ok {
 		return e.enclosing.Get(name)
+	} else if _, ok := val.(Uninitialized); ok {
+		e.tracker.Fatal(errtrack.LoxError{
+			Message: errors.New("Variable uninitialized."),
+			Token:   name,
+		})
 	}
 
 	return val

@@ -5,6 +5,7 @@ package stmt
 //go:generate go run github.com/spencer-p/craftinginterpreters/cmd/genexpr
 /// import github.com/spencer-p/craftinginterpreters/pkg/lox/expr
 /// import github.com/spencer-p/craftinginterpreters/pkg/lox/tok
+/// Block: Statements []Type
 /// Expression: Expr expr.Type
 /// Print: Expr expr.Type
 /// Var: Name tok.Token, Initializer expr.Type

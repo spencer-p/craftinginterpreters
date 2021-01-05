@@ -10,9 +10,18 @@ type Type interface {
 }
 
 type Visitor interface {
+	VisitBlock(*Block) interface{}
 	VisitExpression(*Expression) interface{}
 	VisitPrint(*Print) interface{}
 	VisitVar(*Var) interface{}
+}
+
+type Block struct {
+	Statements []Type
+}
+
+func (e *Block) Accept(v Visitor) interface{} {
+	return v.VisitBlock(e)
 }
 
 type Expression struct {
