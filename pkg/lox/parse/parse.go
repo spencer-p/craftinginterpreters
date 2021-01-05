@@ -24,16 +24,35 @@ func New(tracker *errtrack.Tracker, toks []Token) *Parser {
 }
 
 func (p *Parser) AST() []stmt.Type {
-	defer p.tracker.CatchFatal()
 	return p.parse()
 }
 
 func (p *Parser) parse() []stmt.Type {
 	var statements []stmt.Type
 	for !p.atEnd() {
-		statements = append(statements, p.statement())
+		statements = append(statements, p.declaration())
 	}
 	return statements
+}
+
+func (p *Parser) declaration() stmt.Type {
+	defer p.tracker.CatchFatal(p.synchronize)
+	if p.match(VAR) {
+		return p.varDeclaration()
+	}
+	return p.statement()
+}
+
+func (p *Parser) varDeclaration() stmt.Type {
+	name := p.consume(IDENT, "Expect variable name.")
+
+	var init expr.Type
+	if p.match(EQUAL) {
+		init = p.expression()
+	}
+
+	p.consume(SEMICOLON, "Expect ';' after variable declaration.")
+	return &stmt.Var{name, init}
 }
 
 func (p *Parser) statement() stmt.Type {
@@ -56,7 +75,27 @@ func (p *Parser) expressionStatement() stmt.Type {
 }
 
 func (p *Parser) expression() expr.Type {
-	return p.equality()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() expr.Type {
+	e := p.equality()
+
+	if p.match(EQUAL) {
+		equals := p.previous()
+		right := p.assignment()
+		switch left := e.(type) {
+		case *expr.Variable:
+			return &expr.Assign{left.Name, right}
+		default:
+			p.tracker.Report(errtrack.LoxError{
+				Message: errors.New("Invalid assignment target."),
+				Token:   equals,
+			})
+		}
+	}
+
+	return e
 }
 
 func (p *Parser) equality() expr.Type {
@@ -149,6 +188,8 @@ func (p *Parser) primary() expr.Type {
 		e := p.expression()
 		p.consume(RIGHT_PAREN, "Expect ')' after expression.")
 		return &expr.Grouping{e}
+	} else if p.match(IDENT) {
+		return &expr.Variable{p.previous()}
 	}
 
 	p.tracker.Fatal(errtrack.LoxError{
@@ -205,4 +246,30 @@ func (p *Parser) consume(typ TokenType, msg string) Token {
 		Token:   p.peek(),
 	})
 	return Token{} // unreachable
+}
+
+func (p *Parser) synchronize() {
+	for p.advance(); !p.atEnd(); p.advance() {
+		if p.previous().Typ == SEMICOLON {
+			return
+		}
+		switch p.peek().Typ {
+		case CLASS:
+			return
+		case FN:
+			return
+		case VAR:
+			return
+		case FOR:
+			return
+		case IF:
+			return
+		case WHILE:
+			return
+		case PRINT:
+			return
+		case RETURN:
+			return
+		}
+	}
 }

@@ -64,6 +64,9 @@ func (i *Interpreter) checkNumbers(op tok.Token, values ...interface{}) {
 }
 
 func Stringify(result interface{}) string {
+	if result == nil {
+		return "nil"
+	}
 	s := fmt.Sprintf("%v", result)
 	if _, ok := result.(float64); ok && strings.HasSuffix(s, ".0") {
 		// Remove .0 only from floats

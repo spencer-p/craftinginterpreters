@@ -2,6 +2,7 @@ package stmt
 
 import (
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/expr"
+	"github.com/spencer-p/craftinginterpreters/pkg/lox/tok"
 )
 
 type Type interface {
@@ -11,6 +12,7 @@ type Type interface {
 type Visitor interface {
 	VisitExpression(*Expression) interface{}
 	VisitPrint(*Print) interface{}
+	VisitVar(*Var) interface{}
 }
 
 type Expression struct {
@@ -27,5 +29,14 @@ type Print struct {
 
 func (e *Print) Accept(v Visitor) interface{} {
 	return v.VisitPrint(e)
+}
+
+type Var struct {
+	Name tok.Token
+	Initializer expr.Type
+}
+
+func (e *Var) Accept(v Visitor) interface{} {
+	return v.VisitVar(e)
 }
 

@@ -12,7 +12,6 @@ import (
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/errtrack"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/interpret"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/parse"
-	_ "github.com/spencer-p/craftinginterpreters/pkg/lox/prettyprint"
 	"github.com/spencer-p/craftinginterpreters/pkg/lox/scan"
 )
 

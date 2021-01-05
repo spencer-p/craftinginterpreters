@@ -61,12 +61,24 @@ func (t *Tracker) Reset() {
 }
 
 // CatchFatal stops any calls to Tracker.Fatal from escaping a function. Must be
-// deferred.
-func (t *Tracker) CatchFatal() {
-	if r := recover(); r != nil && !t.HadError() {
-		// If we panicked from something but there was no tracker error, then
-		// continue panicking.
-		// Other panics are dropped.
-		panic(r)
+// deferred. Any functions passed to it will be run if there is a tracked error.
+func (t *Tracker) CatchFatal(funcs ...func()) {
+	if r := recover(); r != nil {
+		if !t.HadError() {
+			// If we panicked from something but there was no tracker error, then
+			// continue panicking.
+			// Other panics are dropped.
+			panic(r)
+		}
+		for _, f := range funcs {
+			f()
+		}
+	}
+}
+
+func ErrorUndefined(name tok.Token) LoxError {
+	return LoxError{
+		Message: fmt.Errorf("Undefined variable: %q.", name.Lexeme),
+		Token:   name,
 	}
 }

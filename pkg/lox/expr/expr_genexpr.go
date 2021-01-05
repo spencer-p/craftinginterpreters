@@ -13,6 +13,8 @@ type Visitor interface {
 	VisitGrouping(*Grouping) interface{}
 	VisitLiteral(*Literal) interface{}
 	VisitUnary(*Unary) interface{}
+	VisitVariable(*Variable) interface{}
+	VisitAssign(*Assign) interface{}
 }
 
 type Binary struct {
@@ -48,5 +50,22 @@ type Unary struct {
 
 func (e *Unary) Accept(v Visitor) interface{} {
 	return v.VisitUnary(e)
+}
+
+type Variable struct {
+	Name tok.Token
+}
+
+func (e *Variable) Accept(v Visitor) interface{} {
+	return v.VisitVariable(e)
+}
+
+type Assign struct {
+	Name tok.Token
+	Value Type
+}
+
+func (e *Assign) Accept(v Visitor) interface{} {
+	return v.VisitAssign(e)
 }
 

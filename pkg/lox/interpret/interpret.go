@@ -15,6 +15,7 @@ import (
 type Interpreter struct {
 	tracker *errtrack.Tracker
 	out     io.Writer
+	env     *Env
 }
 
 // Verify it satisfies the visitor types
@@ -25,6 +26,7 @@ func New(tracker *errtrack.Tracker) *Interpreter {
 	return &Interpreter{
 		tracker: tracker,
 		out:     os.Stdout,
+		env:     NewEnv(tracker, nil),
 	}
 }
 
@@ -137,4 +139,24 @@ func (i *Interpreter) VisitPrint(st *stmt.Print) interface{} {
 	val := i.eval(st.Expr)
 	fmt.Fprintln(i.out, Stringify(val))
 	return nil
+}
+
+func (i *Interpreter) VisitVariable(e *expr.Variable) interface{} {
+	return i.env.Get(e.Name)
+}
+
+func (i *Interpreter) VisitVar(st *stmt.Var) interface{} {
+	var val interface{}
+	if st.Initializer != nil {
+		val = i.eval(st.Initializer)
+	}
+
+	i.env.Define(st.Name.Lexeme, val)
+	return nil
+}
+
+func (i *Interpreter) VisitAssign(e *expr.Assign) interface{} {
+	val := i.eval(e.Value)
+	i.env.Assign(e.Name, val)
+	return val
 }

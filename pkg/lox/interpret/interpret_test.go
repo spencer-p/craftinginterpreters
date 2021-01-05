@@ -32,6 +32,9 @@ func TestInterpret(t *testing.T) {
 		"bad add":         {in: "print 1 + \"two\";", wantErr: true},
 		"bad add 2":       {in: "print \"two\" + 1;", wantErr: true},
 		"two stmt":        {in: "print 1; print 2;", want: "1\n2"},
+		"assignment":      {in: "var x = 2; print x;", want: "2"},
+		"asgnt, no init":  {in: "var x; print x;", want: "nil"},
+		"lookup fail":     {in: "print x;", wantErr: true},
 	}
 
 	for name, tc := range table {

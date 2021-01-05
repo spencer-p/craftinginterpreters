@@ -8,3 +8,5 @@ package expr
 /// Grouping: Expr Type
 /// Literal: Value interface{}
 /// Unary: Op tok.Token, Right Type
+/// Variable: Name tok.Token
+/// Assign: Name tok.Token, Value Type

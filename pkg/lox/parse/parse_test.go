@@ -119,6 +119,14 @@ func TestParse(t *testing.T) {
 			&stmt.Expression{Expr: &expr.Literal{1.0}},
 			&stmt.Print{Expr: &expr.Literal{"hello world"}},
 		},
+	}, {
+		in:      `1 = 2;`,
+		wanterr: true,
+	}, {
+		in: `myVar = 2;`,
+		want: []stmt.Type{&stmt.Expression{
+			&expr.Assign{Token{}, &expr.Literal{2.0}},
+		}},
 	}}
 
 	ignoreTokenTypeFields := cmp.FilterPath(func(path cmp.Path) bool {
@@ -144,6 +152,14 @@ func TestParse(t *testing.T) {
 			fake := errtrack.NewFake()
 			tokens := scan.New(fake.Tracker, row.in).Tokens() // not too happy about dependency. writing tokens is hard.
 			got := New(fake.Tracker, tokens).AST()
+
+			if row.wanterr {
+				if fake.Tracker.HadError() == false {
+					t.Errorf("Wanted an error but got none")
+				}
+				return // successfully errored
+			}
+
 			if fake.Tracker.HadError() && row.wanterr == false {
 				t.Errorf("Parse %q unexpected error %q", row.in, fake.Errors())
 			} else if diff := cmp.Diff(got, row.want, ignoreTokenTypeFields); diff != "" {
